@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de API REST de Inventario</title>
+    <style>
+        /* Estilos omitidos por brevedad */
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        #output { border: 1px solid #ccc; padding: 15px; min-height: 100px; margin-top: 20px; white-space: pre-wrap; background-color: #f4f4f4; }
+        button { padding: 10px 15px; margin-right: 10px; cursor: pointer; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Prueba de la API de Inventario (PHP/MySQL)</h1>
+    <p>URL de la API: <code id="api-url"></code></p>
+
+    <div>
+        <button onclick="listarProductos()">Listar Todos (GET)</button>
+        <button onclick="crearProductoEjemplo()">Crear Producto (POST)</button>
+        <button onclick="limpiarSalida()">Limpiar Salida</button>
+    </div>
+
+    <h2>Salida de la API (JSON)</h2>
+    <pre id="output">Esperando pruebas...</pre>
+
+    <script>
+        // 🟢 CORRECCIÓN: La URL apunta a la carpeta 'api_inventario'
+        const API_URL = 'http://localhost/api_inventario/api_inventario.php'; 
+        document.getElementById('api-url').textContent = API_URL;
+
+        const output = document.getElementById('output');
+
+        function log(message, type = 'info') {
+            const className = type === 'error' ? 'error' : (type === 'success' ? 'success' : '');
+            output.innerHTML = `<span class="${className}">${message}</span>\n\n${output.innerHTML}`;
+        }
+
+        function limpiarSalida() {
+            output.textContent = 'Esperando pruebas...';
+        }
+
+        // --- 1. LISTAR TODOS LOS PRODUCTOS (GET) ---
+        async function listarProductos() {
+            log('Iniciando GET: Listar Productos...', 'info');
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                log('GET exitoso. Status: ' + response.status, 'success');
+                output.textContent = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                log(`Error en la petición GET: ${error.message}`, 'error');
+            }
+        }
+
+        // --- 2. CREAR UN PRODUCTO DE EJEMPLO (POST) ---
+        async function crearProductoEjemplo() {
+            const productoNuevo = {
+                nombre: "Tablet Genérica " + Math.floor(Math.random() * 100),
+                descripcion: "Una tablet simple para pruebas.",
+                codigo_barras: "TEST" + Date.now().toString().slice(-6), 
+                categoria: "Tablets",
+                precio: 85.50,
+                stock: 15,
+                proveedor: "Proveedor Test"
+            };
+
+            log('Iniciando POST: Creando producto...', 'info');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productoNuevo)
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 201) {
+                    log('POST exitoso. Producto creado.', 'success');
+                } else {
+                    log(`POST fallido. Status: ${response.status}`, 'error');
+                }
+
+                output.textContent = JSON.stringify(data, null, 2);
+                listarProductos(); 
+
+            } catch (error) {
+                log(`Error en la petición POST: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
